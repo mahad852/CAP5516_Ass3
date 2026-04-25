@@ -16,6 +16,9 @@ from transformers import SamModel, SamProcessor
 from peft import get_peft_model, LoraConfig, TaskType, PeftModel, get_peft_model_state_dict
 from monai.losses import DiceLoss
 from utils import pq_score, binary_dice, aji_score, compute_iou_matrix, generate_proposal_boxes_from_image
+import warnings
+
+warnings.filterwarnings("ignore", category=FutureWarning)
 
 def get_args():
     parser = argparse.ArgumentParser()
