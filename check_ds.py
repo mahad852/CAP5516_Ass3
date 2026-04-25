@@ -44,11 +44,10 @@ def main():
 
     loader = DataLoader(dataset=ds, shuffle=True, batch_size=32)
     
-    img, label, img_np = loader[272]
-    input_boxes = box_from_mask(label)
-    print(input_boxes)
-
     for idx, (img, label, img_np) in tqdm(enumerate(loader), desc="Running test"):
+        if idx < 272:
+            continue
+        
         print(img.shape, label.shape, img_np.shape)
         print(label.sum())
 
