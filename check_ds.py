@@ -8,7 +8,7 @@ from transformers import SamModel, SamProcessor
 import torch
 import numpy as np
 from tqdm import tqdm
-
+import random
 class MaskResizeOnly:
     def __init__(self, size=(256, 256)):
         self.size = size
@@ -23,8 +23,14 @@ def get_mask_transforms():
         MaskResizeOnly(size=(256, 256))
     ])
 
+def set_seed(seed):
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+
 def main():
     parser = argparse.ArgumentParser()
+    set_seed(42)
     parser.add_argument("--root", type=str, required=True)
     args = parser.parse_args()
 
@@ -33,8 +39,8 @@ def main():
     processor = SamProcessor.from_pretrained(model_name)
 
     ds = NucleiDataset(root=args.root, return_instances_separately=True, img_transform=processor, label_transform=get_mask_transforms())
-    indices = range(22500, 22600)
-    ds = Subset(ds, indices=indices)
+    # indices = range(22500, 22600)
+    # ds = Subset(ds, indices=indices)
 
     loader = DataLoader(dataset=ds, shuffle=True, batch_size=32)
 
