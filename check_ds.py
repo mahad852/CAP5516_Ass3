@@ -33,7 +33,7 @@ def main():
     processor = SamProcessor.from_pretrained(model_name)
 
     ds = NucleiDataset(root=args.root, return_instances_separately=True, img_transform=processor, label_transform=get_mask_transforms())
-    indices = range(700, 707)
+    indices = range(22500, 22600)
     ds = Subset(ds, indices=indices)
 
     loader = DataLoader(dataset=ds, shuffle=True, batch_size=32)
