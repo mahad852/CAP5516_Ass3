@@ -39,13 +39,15 @@ def main():
     processor = SamProcessor.from_pretrained(model_name)
 
     ds = NucleiDataset(root=args.root, return_instances_separately=True, img_transform=processor, label_transform=get_mask_transforms())
-    # indices = range(22500, 22600)
-    # ds = Subset(ds, indices=indices)
+    indices = range(8640, 8768)
+    ds = Subset(ds, indices=indices)
 
     loader = DataLoader(dataset=ds, shuffle=True, batch_size=32)
 
     for idx, (img, label, img_np) in tqdm(enumerate(loader), desc="Running test"):
         print(img.shape, label.shape, img_np.shape)
+        print(label.sum())
+        
         input_boxes = box_from_mask(label)
         if input_boxes.size(0) != label.size(0) != img.size(0) != img_np.size(0):
             print(img.shape, label.shape, img_np.shape, input_boxes.shape)
