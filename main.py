@@ -198,9 +198,6 @@ def main():
         train_img_ids, val_img_ids = get_train_val_img_ids(fold_img_ids=folds_img_ids, val_idx=val_idx)
 
         train_ds = NucleiDataset(root=args.root, return_instances_separately=True, image_ids=train_img_ids, img_transform=processor, label_transform=mask_transform)
-        train_indices = random.sample(population=range(len(train_ds)), k=args.batch_size * 200)
-        train_ds = Subset(train_ds, indices=train_indices)
-
         val_ds = NucleiDataset(root=args.root, return_instances_separately=False, image_ids=val_img_ids, img_transform=processor, label_transform=mask_transform)
 
         train_loader = DataLoader(dataset=train_ds, shuffle=True, batch_size=args.batch_size)
