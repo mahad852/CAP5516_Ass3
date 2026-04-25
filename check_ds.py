@@ -32,7 +32,7 @@ def main():
     processor = SamProcessor.from_pretrained(model_name)
 
     ds = NucleiDataset(root=args.root, return_instances_separately=True, img_transform=processor, label_transform=get_mask_transforms())
-    loader = DataLoader(dataset=ds, shuffle=True, batch_size=args.batch_size)
+    loader = DataLoader(dataset=ds, shuffle=True, batch_size=32)
 
     for img, label, img_np in loader:
         input_boxes = box_from_mask(label)
