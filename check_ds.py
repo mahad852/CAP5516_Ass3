@@ -7,6 +7,7 @@ import torchvision.transforms.functional as TF
 from transformers import SamModel, SamProcessor
 import torch
 import numpy as np
+from tqdm import tqdm
 
 class MaskResizeOnly:
     def __init__(self, size=(256, 256)):
@@ -34,7 +35,7 @@ def main():
     ds = NucleiDataset(root=args.root, return_instances_separately=True, img_transform=processor, label_transform=get_mask_transforms())
     loader = DataLoader(dataset=ds, shuffle=True, batch_size=32)
 
-    for idx, (img, label, img_np) in enumerate(loader):
+    for idx, (img, label, img_np) in tqdm(enumerate(loader), desc="Running test"):
         input_boxes = box_from_mask(label)
         if input_boxes.size(0) != label.size(0) != img.size(0) != img_np.size(0):
             print(img.shape, label.shape, img_np.shape, input_boxes.shape)
