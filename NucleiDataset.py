@@ -2,7 +2,7 @@ from torch.utils.data import Dataset
 from PIL import Image
 import numpy as np
 import os
-
+from torchvision import transforms
 class NucleiDataset(Dataset):
     def __init__(self, root: str, img_transform = None, label_transform = None, return_instances_separately = True, image_ids = None):
         self.root = root
@@ -55,15 +55,18 @@ class NucleiDataset(Dataset):
         img = Image.open(image_path)
 
         if self.img_transform:
-            transformed_img = self.img_transform(img)
+            inputs = self.img_transform(img, return_tensors="pt")
+            pixel_values = inputs["pixel_values"].squeeze(0)
+        else:
+            label = label == instance_id
 
         label = Image.open(label_path)
         if self.label_transform:
             label = self.label_transform(label)
 
-        if instance_id:
+        if instance_id is not None:
             label = label == instance_id
 
-        return transformed_img, label, np.array(img)
+        return pixel_values, label, np.array(img)
 
 
