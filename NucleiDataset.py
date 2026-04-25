@@ -52,7 +52,7 @@ class NucleiDataset(Dataset):
     def __getitem__(self, index):
         image_path, label_path, instance_id = self.index[index]
 
-        img = Image.open(image_path)
+        img = Image.open(image_path).convert("RGB")
 
         if self.img_transform:
             inputs = self.img_transform(img, return_tensors="pt")
