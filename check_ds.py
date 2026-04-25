@@ -34,10 +34,23 @@ def main():
     ds = NucleiDataset(root=args.root, return_instances_separately=True, img_transform=processor, label_transform=get_mask_transforms())
     loader = DataLoader(dataset=ds, shuffle=True, batch_size=32)
 
-    for img, label, img_np in loader:
+    for idx, (img, label, img_np) in enumerate(loader):
         input_boxes = box_from_mask(label)
-        print(img.shape, label.shape, img_np.shape, input_boxes.shape)
+        if input_boxes.size(0) != label.size(0) != img.size(0) != img_np.size(0):
+            print(img.shape, label.shape, img_np.shape, input_boxes.shape)
+            raise ValueError(f"{idx}, all tensors must have the same num batches")
 
+        if img.size(2) != img.size(3) or img.size(2) != 1024 or img.size(1) != 3:
+            print(img.shape, label.shape, img_np.shape, input_boxes.shape)
+            raise ValueError(f"{idx}, img tensor must be of size [B, 3, 1024, 1024]") 
+        
+        if label.size(1) != label.size(2) or label.size(1) != 256:
+            print(img.shape, label.shape, img_np.shape, input_boxes.shape)
+            raise ValueError(f"{idx}, label tensor must be of size [B, 256, 256]") 
+        
+        if input_boxes.size(1) != 1 or input_boxes.size(2) != 4:
+            print(img.shape, label.shape, img_np.shape, input_boxes.shape)
+            raise ValueError(f"{idx}, input_boxes tensor must be of size [B, 1, 4]") 
 
     print("All set")
 
