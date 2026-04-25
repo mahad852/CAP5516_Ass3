@@ -59,7 +59,7 @@ class NucleiDataset(Dataset):
             inputs = self.img_transform(img, return_tensors="pt")
             pixel_values = inputs["pixel_values"].squeeze(0)
         else:
-            label = label == instance_id
+            pixel_values = transforms.ToTensor()(img)
 
         label = Image.open(label_path)
         if self.label_transform:
