@@ -16,6 +16,9 @@ class NucleiDataset(Dataset):
 
     def get_mask_instance_ids(self, mask_path: str):
         mask = Image.open(mask_path)
+        if self.label_transform:
+            mask = self.label_transform(mask).numpy()
+
         instances_ids = np.unique(mask).tolist()
         return [instance_id for instance_id in instances_ids if instance_id > 0]
 
