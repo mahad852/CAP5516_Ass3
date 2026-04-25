@@ -89,8 +89,8 @@ def generate_proposal_boxes_from_image(
     thresh = filters.threshold_otsu(inv)
     binary = inv > thresh
 
-    binary = morphology.remove_small_objects(binary, min_size=min_area)
-    binary = morphology.binary_opening(binary, morphology.disk(1))
+    binary = morphology.remove_small_objects(binary, area_threshold=min_area)
+    binary = morphology.opening(binary, morphology.disk(1))
     binary = ndi.binary_fill_holes(binary)
 
     labeled = measure.label(binary)
