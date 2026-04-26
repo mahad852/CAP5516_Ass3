@@ -4,6 +4,7 @@ from typing import Optional
 from skimage import filters, measure, morphology
 from scipy import ndimage as ndi
 import numpy as np
+import random
 
 def get_all_image_ids(root: str):
     im_ids = []
@@ -77,6 +78,22 @@ def get_grid_points(image_size=512, points_per_side=32):
     y = torch.linspace(0, image_size - 1, points_per_side)
     grid_x, grid_y = torch.meshgrid(x, y, indexing="xy")
     return torch.stack([grid_x.flatten(), grid_y.flatten()], dim=-1)
+
+def sample_one_point_per_instance(gt_label_np):
+    points = []
+
+    ids = np.unique(gt_label_np)
+    ids = ids[ids != 0]
+
+    for inst_id in ids:
+        ys, xs = np.where(gt_label_np == inst_id)
+        j = random.randint(a=0, b=len(xs) - 1)
+        points.append([xs[j], ys[j]])
+
+    if len(points) == 0:
+        return torch.empty((0, 2), dtype=torch.float32)
+
+    return torch.tensor(points, dtype=torch.float32)
 
 def generate_proposal_boxes_from_image(
     image_np: np.ndarray,

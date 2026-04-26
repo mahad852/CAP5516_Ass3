@@ -16,7 +16,7 @@ from torch.utils.data import DataLoader, Subset
 from transformers import SamModel, SamProcessor
 from peft import get_peft_model, LoraConfig, TaskType, PeftModel, get_peft_model_state_dict
 from monai.losses import DiceLoss
-from utils import pq_score, binary_dice, aji_score, mask_iou, get_grid_points, generate_proposal_boxes_from_image
+from utils import pq_score, binary_dice, aji_score, mask_iou, sample_one_point_per_instance,  get_grid_points, generate_proposal_boxes_from_image
 import warnings
 
 warnings.filterwarnings("ignore", category=FutureWarning)
@@ -225,7 +225,8 @@ def evaluate(model, val_loader, device):
         gt_label_np = gt_label.squeeze(0).cpu().numpy().astype(np.int32)
 
         image_np_single = image_np.squeeze(0).cpu().numpy()
-        points = get_grid_points(image_size=512, points_per_side=32)
+        # points = get_grid_points(image_size=512, points_per_side=32)
+        points = sample_one_point_per_instance(gt_label_np)
 
         # boxes = generate_proposal_boxes_from_image(image_np_single)
 
@@ -233,9 +234,9 @@ def evaluate(model, val_loader, device):
             model=model,
             pixel_values=pixel_values,
             points=points,
-            orig_size=512,
+            orig_size=gt_label_np.shape[-1],
             target_size=1024,
-            out_size=gt_label_np.shape[-1],  # 56
+            out_size=gt_label_np.shape[-1],  # 256
             device=device,
             score_threshold=0.50,
             nms_iou=0.3
