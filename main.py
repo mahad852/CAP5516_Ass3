@@ -263,7 +263,7 @@ def main():
     mask_transform = get_mask_transforms()
 
     for val_idx in range(len(folds_img_ids)):
-        model, processor = get_model()
+        model, processor = get_model(sam_path=args.sam_path)
         model = model.to(device=device)
 
         optim = torch.optim.AdamW(
