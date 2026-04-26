@@ -271,7 +271,7 @@ def main():
 
         optim = torch.optim.AdamW(
             [p for p in model.parameters() if p.requires_grad],
-            lr=1e-4,
+            lr=5e-5,
             weight_decay=1e-4,
         )
         seg_loss = DiceLoss(sigmoid=True, squared_pred=True, reduction='mean')
@@ -280,8 +280,8 @@ def main():
         train_img_ids, val_img_ids = get_train_val_img_ids(fold_img_ids=folds_img_ids, val_idx=val_idx)
 
         train_ds = NucleiDataset(root=args.root, return_instances_separately=True, image_ids=train_img_ids, img_transform=processor, label_transform=mask_transform)
-        indices = random.sample(population=range(len(train_ds)), k=5000)
-        train_ds = Subset(train_ds, indices=indices)
+        # indices = random.sample(population=range(len(train_ds)), k=5000)
+        # train_ds = Subset(train_ds, indices=indices)
 
         val_ds = NucleiDataset(root=args.root, return_instances_separately=False, image_ids=val_img_ids, img_transform=processor, label_transform=mask_transform)
 
