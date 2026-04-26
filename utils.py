@@ -72,6 +72,11 @@ def box_from_mask(
 
     return boxes
 
+def get_grid_points(image_size=512, points_per_side=32):
+    x = torch.linspace(0, image_size - 1, points_per_side)
+    y = torch.linspace(0, image_size - 1, points_per_side)
+    grid_x, grid_y = torch.meshgrid(x, y, indexing="xy")
+    return torch.stack([grid_x.flatten(), grid_y.flatten()], dim=-1)
 
 def generate_proposal_boxes_from_image(
     image_np: np.ndarray,
@@ -144,6 +149,11 @@ def compute_iou_matrix(gt_label: np.ndarray, pred_label: np.ndarray):
                 iou[gi, pi] = inter / union
 
     return gt_ids, pred_ids, iou
+
+def mask_iou(a, b, eps=1e-6):
+    inter = torch.logical_and(a, b).sum().float()
+    union = torch.logical_or(a, b).sum().float()
+    return inter / (union + eps)
 
 
 def aji_score(gt_label: np.ndarray, pred_label: np.ndarray, eps: float = 1e-7):

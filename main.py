@@ -9,13 +9,14 @@ import random
 from tqdm import tqdm
 from torchvision import transforms
 import torchvision.transforms.functional as TF
+import torch.nn.functional as F
 import torch.optim as Optim
 from torch.utils.data import DataLoader, Subset
 
 from transformers import SamModel, SamProcessor
 from peft import get_peft_model, LoraConfig, TaskType, PeftModel, get_peft_model_state_dict
 from monai.losses import DiceLoss
-from utils import pq_score, binary_dice, aji_score, compute_iou_matrix, generate_proposal_boxes_from_image
+from utils import pq_score, binary_dice, aji_score, mask_iou, get_grid_points, generate_proposal_boxes_from_image
 import warnings
 
 warnings.filterwarnings("ignore", category=FutureWarning)
@@ -27,6 +28,7 @@ def get_args():
     parser.add_argument("--batch_size", type=int, default=16)
     parser.add_argument("--output_dir", type=str, required=True)
     parser.add_argument("--seed", type=int, default=42)
+    parser.add_argument("--sam_path", default=None, type=str)
 
     return parser.parse_args()
 
@@ -71,8 +73,8 @@ def get_mask_transforms():
         MaskResizeOnly(size=(256, 256))
     ])
 
-def get_model() -> PeftModel:
-    model_name = "facebook/sam-vit-base"
+def get_model(sam_path: str = None) -> PeftModel:
+    model_name = "facebook/sam-vit-base" if sam_path is None else sam_path
     model = SamModel.from_pretrained(model_name)
     processor = SamProcessor.from_pretrained(model_name)
 
@@ -140,6 +142,77 @@ def predict_instances_with_boxes(
     return pred_label
 
 @torch.no_grad()
+def predict_instances_with_points(
+    model,
+    pixel_values,
+    points,
+    device,
+    orig_size=512,
+    target_size=1024,
+    out_size=256,
+    mask_threshold=0.0,
+    score_threshold=0.88,
+    min_area=8,
+    max_area=2500,
+    nms_iou=0.5,
+):
+    model.eval()
+
+    scale = target_size / orig_size
+    scaled_points = points * scale
+
+    input_points = scaled_points.unsqueeze(1).unsqueeze(0).to(device)  # [1,N,1,2]
+    input_labels = torch.ones(input_points.shape[:3], dtype=torch.long, device=device)
+
+    outputs = model(
+        pixel_values=pixel_values.to(device),
+        input_points=input_points,
+        input_labels=input_labels,
+        multimask_output=False,
+    )
+
+    masks = outputs.pred_masks[0, :, 0]  # [N,256,256]
+    scores = outputs.iou_scores[0, :, 0] # [N]
+
+    order = torch.argsort(scores, descending=True)
+
+    kept_masks = []
+
+    for idx in order:
+        if scores[idx] < score_threshold:
+            continue
+
+        m = masks[idx] > mask_threshold
+        area = m.sum().item()
+
+        if area < min_area or area > max_area:
+            continue
+
+        duplicate = False
+        for km in kept_masks:
+            if mask_iou(m, km) > nms_iou:
+                duplicate = True
+                break
+
+        if duplicate:
+            continue
+
+        kept_masks.append(m)
+
+    pred_label = np.zeros((out_size, out_size), dtype=np.int32)
+
+    for i, m in enumerate(kept_masks):
+        m_np = m.detach().cpu().numpy().astype(bool)
+        m_np = np.logical_and(m_np, pred_label == 0)
+
+        if m_np.sum() == 0:
+            continue
+
+        pred_label[m_np] = i + 1
+
+    return pred_label
+    
+@torch.no_grad()
 def evaluate(model, val_loader, device):
     dice_scores = []
     aji_scores = []
@@ -152,14 +225,17 @@ def evaluate(model, val_loader, device):
         gt_label_np = gt_label.squeeze(0).cpu().numpy().astype(np.int32)
 
         image_np_single = image_np.squeeze(0).cpu().numpy()
-        boxes = generate_proposal_boxes_from_image(image_np_single)
+        points = get_grid_points(image_size=512, points_per_side=32)
 
-        pred_label = predict_instances_with_boxes(
+        # boxes = generate_proposal_boxes_from_image(image_np_single)
+
+        pred_label = predict_instances_with_points(
             model=model,
             pixel_values=pixel_values,
-            boxes_xyxy=boxes,
+            points=points,
             orig_size=512,
-            mask_size=256,
+            target_size=1024,
+            out_size=gt_label_np.shape[-1],  # 56
             device=device,
         )
 
@@ -201,6 +277,9 @@ def main():
         train_img_ids, val_img_ids = get_train_val_img_ids(fold_img_ids=folds_img_ids, val_idx=val_idx)
 
         train_ds = NucleiDataset(root=args.root, return_instances_separately=True, image_ids=train_img_ids, img_transform=processor, label_transform=mask_transform)
+        indices = random.sample(population=range(len(train_ds)), k=5000)
+        train_ds = Subset(train_ds, indices=indices)
+
         val_ds = NucleiDataset(root=args.root, return_instances_separately=False, image_ids=val_img_ids, img_transform=processor, label_transform=mask_transform)
 
         train_loader = DataLoader(dataset=train_ds, shuffle=True, batch_size=args.batch_size)
