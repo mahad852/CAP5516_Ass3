@@ -16,7 +16,7 @@ from torch.utils.data import DataLoader, Subset
 from transformers import SamModel, SamProcessor
 from peft import get_peft_model, LoraConfig, TaskType, PeftModel, get_peft_model_state_dict
 from monai.losses import DiceLoss
-from utils import pq_score, binary_dice, aji_score, mask_iou, sample_one_point_per_instance,  get_grid_points, generate_proposal_boxes_from_image
+from utils import pq_score, binary_dice, aji_score, mask_iou, sample_one_point_per_instance,  sample_one_point_from_binary_mask, get_grid_points, generate_proposal_boxes_from_image
 import warnings
 
 warnings.filterwarnings("ignore", category=FutureWarning)
@@ -308,13 +308,35 @@ def main():
                 scale = pixel_values.shape[-1] / gt_mask.shape[-1]
                 input_boxes = (input_boxes * scale).to(device)
 
+                input_points = torch.stack(
+                    [sample_one_point_from_binary_mask(mask) for mask in gt_mask],
+                    dim=0
+                ).unsqueeze(1).to(device=device)  # [B,1,2]
+                input_points = input_points * scale
+
+                input_labels = torch.ones(
+                    (input_points.shape[0], input_points.shape[1]),
+                    dtype=torch.long,
+                    device=device,
+                )  # [B,1]
+
+                use_points = random.random() > 0.5
+
                 optim.zero_grad(set_to_none=True)
 
-                outputs = model(
-                    pixel_values=pixel_values,
-                    input_boxes=input_boxes,
-                    multimask_output=False
-                )
+                if use_points:
+                    outputs = model(
+                        pixel_values=pixel_values,
+                        input_points=input_points,
+                        input_labels=input_labels,
+                        multimask_output=False
+                    )
+                else:    
+                    outputs = model(
+                        pixel_values=pixel_values,
+                        input_boxes=input_boxes,
+                        multimask_output=False
+                    )
 
                 predicted_masks = outputs.pred_masks.squeeze(1).squeeze(1)
                 gt_mask = gt_mask.float()

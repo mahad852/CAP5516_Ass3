@@ -21,32 +21,10 @@ def get_all_image_ids(root: str):
     return im_ids
 
 
-def sample_points_from_mask(
-    binary_mask_hw: torch.Tensor,
-    n_points: int,
-    generator: Optional[torch.Generator] = None,
-):
-    ys, xs = torch.where(binary_mask_hw > 0)
-
-    if ys.numel() == 0:
-        return None, None
-
-    n_points = min(n_points, ys.numel())
-    if n_points <= 0:
-        return None, None
-
-    if generator is None:
-        perm = torch.randperm(ys.numel(), device=ys.device)
-    else:
-        perm = torch.randperm(ys.numel(), generator=generator, device=ys.device)
-
-    idx = perm[:n_points]
-    sel_y = ys[idx].float()
-    sel_x = xs[idx].float()
-
-    coords = torch.stack([sel_x, sel_y], dim=-1).unsqueeze(0)  # [1,N,2]
-    labels = torch.ones((1, n_points), dtype=torch.int64, device=binary_mask_hw.device)
-    return coords, labels
+def sample_one_point_from_binary_mask(mask_hw):
+    ys, xs = torch.where(mask_hw > 0)
+    idx = torch.randint(0, ys.numel(), (1,), device=mask_hw.device)
+    return torch.stack([xs[idx], ys[idx]], dim=-1).float().squeeze(0)  # [2]
 
 def box_from_mask(
     binary_mask_bhw: torch.Tensor,
