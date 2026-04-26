@@ -311,14 +311,14 @@ def main():
                 input_points = torch.stack(
                     [sample_one_point_from_binary_mask(mask) for mask in gt_mask],
                     dim=0
-                ).unsqueeze(1).to(device=device)  # [B,1,2]
+                ).unsqueeze(1).unsqueeze(1).to(device)  # [B,1,1,2]
                 input_points = input_points * scale
 
                 input_labels = torch.ones(
-                    (input_points.shape[0], input_points.shape[1]),
+                    (input_points.shape[0], 1, 1),
                     dtype=torch.long,
                     device=device,
-                )  # [B,1]
+                )
 
                 use_points = random.random() > 0.5
 
