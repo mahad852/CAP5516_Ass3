@@ -225,7 +225,7 @@ def evaluate(model, val_loader, device):
         gt_label_np = gt_label.squeeze(0).cpu().numpy().astype(np.int32)
 
         image_np_single = image_np.squeeze(0).cpu().numpy()
-        points = get_grid_points(image_size=512, points_per_side=32)
+        points = get_grid_points(image_size=512, points_per_side=64)
 
         # boxes = generate_proposal_boxes_from_image(image_np_single)
 
@@ -237,6 +237,8 @@ def evaluate(model, val_loader, device):
             target_size=1024,
             out_size=gt_label_np.shape[-1],  # 56
             device=device,
+            score_threshold=0.50,
+            nms_iou=0.3
         )
 
         dice_scores.append(binary_dice(pred_label, gt_label_np))
@@ -277,7 +279,7 @@ def main():
         train_img_ids, val_img_ids = get_train_val_img_ids(fold_img_ids=folds_img_ids, val_idx=val_idx)
 
         train_ds = NucleiDataset(root=args.root, return_instances_separately=True, image_ids=train_img_ids, img_transform=processor, label_transform=mask_transform)
-        indices = random.sample(population=range(len(train_ds)), k=5000)
+        indices = random.sample(population=range(len(train_ds)), k=15000)
         train_ds = Subset(train_ds, indices=indices)
 
         val_ds = NucleiDataset(root=args.root, return_instances_separately=False, image_ids=val_img_ids, img_transform=processor, label_transform=mask_transform)
