@@ -225,7 +225,7 @@ def evaluate(model, val_loader, device):
         gt_label_np = gt_label.squeeze(0).cpu().numpy().astype(np.int32)
 
         image_np_single = image_np.squeeze(0).cpu().numpy()
-        points = get_grid_points(image_size=512, points_per_side=64)
+        points = get_grid_points(image_size=512, points_per_side=48)
 
         # boxes = generate_proposal_boxes_from_image(image_np_single)
 
