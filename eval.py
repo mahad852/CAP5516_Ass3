@@ -175,6 +175,9 @@ def _matched_color_maps(gt_mask, pred_mask, iou_threshold=0.1, background_id=0):
 
     gt_rgb = np.zeros((*gt_mask.shape, 4), dtype=float)
     pred_rgb = np.zeros((*pred_mask.shape, 4), dtype=float)
+    
+    gt_rgb[..., 3] = 1.0
+    pred_rgb[..., 3] = 1.0
 
     color_idx = 0
     matched_gt = set()
