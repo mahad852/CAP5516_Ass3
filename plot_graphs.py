@@ -11,10 +11,10 @@ def get_args():
     return parser.parse_args()
 
 def plot_graph(data, xtitle, ytitle, title, path):
-    plt.cla()
+    plt.clf()
 
-    epochs = range(len(data))
-    plt.plot(xs=epochs, ys=data)
+    epochs = np.arange(len(data)) + 1
+    plt.plot(epochs, data)
     plt.xlabel(xtitle)
     plt.ylabel(ytitle)
 
