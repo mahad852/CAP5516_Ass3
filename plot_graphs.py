@@ -54,6 +54,7 @@ def main():
             avg_loss = np.zeros(shape=(len(train_losses)), dtype=float)
             avg_pq = np.zeros(shape=(len(train_losses)), dtype=float)
             avg_dice = np.zeros(shape=(len(train_losses)), dtype=float)
+            avg_aji = np.zeros(shape=(len(train_losses)), dtype=float)
 
         avg_loss = np.asarray(train_losses) + avg_loss
 
@@ -63,7 +64,7 @@ def main():
 
         avg_dice = avg_dice + dice
         avg_aji = avg_aji + aji
-        pq = avg_pq + pq
+        avg_pq = avg_pq + pq
 
         total_folds += 1
 
