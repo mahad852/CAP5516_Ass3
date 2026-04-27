@@ -74,10 +74,10 @@ def main():
     avg_pq /= total_folds
 
     
-    plot_graph(data=avg_loss, xtitle="Epochs", ytitle="Average Training Loss", title="train_loss.png")
-    plot_graph(data=avg_dice, xtitle="Epochs", ytitle="Average Dice", title="dice.png")
-    plot_graph(data=avg_dice, xtitle="Epochs", ytitle="Average AJI", title="aji.png")
-    plot_graph(data=avg_dice, xtitle="Epochs", ytitle="Average PQ", title="pq.png")
+    plot_graph(data=avg_loss, xtitle="Epochs", ytitle="Average Training Loss", title="Average Train Loss v. epochs", path=os.path.join(args.model_dir, "train_loss.png"))
+    plot_graph(data=avg_dice, xtitle="Epochs", ytitle="Average Dice", title="Average Dice v. epochs", path=os.path.join(args.model_dir, "dice.png"))
+    plot_graph(data=avg_dice, xtitle="Epochs", ytitle="Average AJI", title="Average AJI v. epochs", path=os.path.join(args.model_dir, "aji.png"))
+    plot_graph(data=avg_dice, xtitle="Epochs", ytitle="Average PQ", title="Average PQ v. epochs", path=os.path.join(args.model_dir, "pq.png"))
 
 if __name__ == "__main__":
     main()
