@@ -82,16 +82,6 @@ def get_model(sam_path: str = None) -> PeftModel:
     model = SamModel.from_pretrained(model_name)
     processor = SamProcessor.from_pretrained(model_name)
 
-    peft_config = LoraConfig(
-        task_type=TaskType.FEATURE_EXTRACTION,
-        r=8,                                   
-        lora_alpha=32,
-        target_modules=["q_proj", "v_proj"], 
-        lora_dropout=0.1,
-        bias="none"
-    )
-
-    model = get_peft_model(model, peft_config)
     return model, processor
 
 def get_device() -> torch.device:
@@ -261,7 +251,7 @@ def plot_and_save_images(
 
 @torch.no_grad()
 def evaluate(model, val_loader, device, approach, output_dir):
-    sample_img_save_indices = random.sample(len(val_loader), k=3)
+    sample_img_save_indices = random.sample(range(len(val_loader)), k=3)
     sample_img_path = os.path.join(output_dir, "sample_img.png")
     sample_imgs = []
     sample_masks = []
