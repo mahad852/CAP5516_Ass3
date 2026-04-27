@@ -13,7 +13,7 @@ def get_args():
 def plot_graph(data, xtitle, ytitle, title, path):
     plt.cla()
 
-    epochs = len(data)
+    epochs = range(len(data))
     plt.plot(xs=epochs, ys=data)
     plt.xlabel(xtitle)
     plt.ylabel(ytitle)
