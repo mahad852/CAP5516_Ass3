@@ -32,7 +32,7 @@ def get_args():
     parser.add_argument("--sam_path", default=None, type=str)
     parser.add_argument("--lora_path", required=True, type=str)
     parser.add_argument("--approach", default="point", choices=["point", "auto"])
-    parser.add_argument("--fold", default=0, choices=[0, 1, 2, 3, 4])
+    parser.add_argument("--fold", default=0, choices=[0, 1, 2, 3, 4], type=int)
 
     return parser.parse_args()
 
