@@ -299,6 +299,8 @@ def evaluate(model, val_loader, device, approach, output_dir):
             sample_imgs.append(resized_img)
             sample_masks.append(gt_label_np)
             sample_preds.append(pred_label)
+        
+        idx += 1
 
     plot_and_save_images(imgs=sample_imgs, gt_masks=sample_masks, pred_masks=sample_preds, output_img_path=sample_img_path)
 
